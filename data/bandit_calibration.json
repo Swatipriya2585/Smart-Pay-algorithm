@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-05-12T12:00:00Z",
+  "log_amount_divisor": 4.0,
+  "vol_clip_max": 1.0,
+  "liquidity_ratio_log_divisor": 6.0,
+  "spread_clip_max_bps": 500.0
+}
