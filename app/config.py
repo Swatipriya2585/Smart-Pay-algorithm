@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8100
     log_level: str = "info"
+    outbox_path: str = "data/ramhd_outbox.sqlite"
+    state_path: str = "data/linucb_state.json"
+    outcome_store_path: str = "data/ramhd_outcomes.sqlite"
 
 
 settings = Settings()
