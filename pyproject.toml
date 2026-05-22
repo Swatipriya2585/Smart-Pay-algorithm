@@ -24,6 +24,9 @@ dev = [
     "mypy>=1.13.0",
     "ipykernel>=6.29.0",
 ]
+analysis = [
+    "matplotlib>=3.9.0",
+]
 
 [build-system]
 requires = ["setuptools>=68.0"]
