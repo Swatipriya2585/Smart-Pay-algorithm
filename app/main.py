@@ -9,11 +9,12 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 
 from app.api_models import (
     DecideRequest,
@@ -63,6 +64,20 @@ app = FastAPI(
 
 def get_deps(request: Request) -> AppDependencies:
     return request.app.state.deps
+ 
+ 
+def verify_service_token(x_ramhd_token: str | None = Header(default=None)) -> None:
+    """Service auth (Step 8b): verify the shared secret sent by the Node backend.
+ 
+    Only the CryptoChain backend should reach RAMHD. When RAMHD_SERVICE_TOKEN is
+    unset the check is skipped (local dev) - production MUST set it on both sides.
+    Uses compare_digest to avoid leaking the secret via timing.
+    """
+    expected = settings.service_token
+    if not expected:
+        return
+    if not x_ramhd_token or not secrets.compare_digest(x_ramhd_token, expected):
+        raise HTTPException(status_code=401, detail="invalid or missing X-RAMHD-Token")
 
 
 @app.get("/health", response_model=HealthResponse, tags=["meta"])
@@ -79,6 +94,7 @@ async def health() -> HealthResponse:
 async def decide(
     body: DecideRequest,
     deps: AppDependencies = Depends(get_deps),
+    _: None = Depends(verify_service_token),
 ) -> DecideResponse:
     """Run the full RAMHD pipeline and return the chosen token."""
     try:
@@ -119,6 +135,7 @@ async def decide(
 async def observe(
     body: ObserveRequest,
     deps: AppDependencies = Depends(get_deps),
+    _: None = Depends(verify_service_token),
 ) -> ObserveResponse:
     """Store a realized outcome for later reward processing (push side)."""
     try:
